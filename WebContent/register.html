@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>注册</title>
+        <link rel="stylesheet" type="text/css" href="css/common.css">
+        <link rel="stylesheet" href="css/register.css">
+		<!--导入jquery-->
+		<script src="js/jquery-3.3.1.js"></script>
+		<!-- 引入 validate表单验证插件   -->
+        <script type="text/javascript" src="js/jquery.validate.min.js"></script>
+        <style type="text/css">
+
+          .error{
+              float:right;
+              color:red;
+          }
+
+        </style>
+		<script>
+			/*
+				表单校验：
+					1.用户名：单词字符，长度8到20位
+					2.密码：单词字符，长度8到20位
+					3.email：邮件格式
+					4.姓名：非空
+					5.手机号：手机号格式
+					6.出生日期：非空
+					7.验证码：非空
+			 */
+			// 当页面加载完毕要执行的代码
+    $(function () {
+    	   // 使用js完成表单验证
+    	   // 使用jquery validator插件来完成表单验证
+    	 $("#registerForm").validate({
+    		   // 设置验证规则
+    		   rules:{    // 表单name属性的名字来设置验证规则
+    			   username:{
+    				   required : true, // 用户名必须填写
+    				   rangelength:[5,10]  // 用户名5-10位
+    			   },
+    			   password:{
+    				   required : true,  // 密码必须填写
+    				   minlength:6     //密码不能小于六位
+    			   },
+    			   email:{
+    				   required:true,  // 邮箱必须填写
+    				   email:true      // 必须有@  .com结尾
+    			   },
+    			    name:{
+    			    	  required:true, // 用户名不能为空
+    			    	  chekName:true
+    			   },
+    			   telephone:{
+    				   required:true, // 手机号不能为空
+    				   isphoneNum:true,
+    				   maxlength:11,
+    				   minlength:11
+    			   },
+    			   birthday:{
+    				   required:true, // 不能为空
+    				   date:true
+    			   } 
+    		   },   // 如果违反了上面的规则
+    		   messages:{
+    			   username:{
+    				   required: "用户名必须填写",  // 用户名必须填写
+    				   rangelength:"用户名必须5-10位"  // 用户名5-10位
+    			   },
+    			   password:{
+    				   required:"密码必须填写",  // 密码必须填写
+    				   minlength:"密码不能小于六位"     //密码不能小于六位
+    			   },
+    			   email:{
+    				   required:"邮箱必须填写",  // 邮箱必须填写
+    				   email:"邮箱格式不正确"      // 必须有@  .com结尾
+    			   },
+    			    name:{
+    			    	  required:"真实姓名不能为空", // 用户名不能为空
+    			    	  chekName:"真实姓名不能有特殊符号"
+    			   },
+    			   telephone:{
+    				   required:"手机号不能为空", // 手机号不能为空
+    				   isphoneNum:"手机号码格式正确",
+    				   maxlength:"手机号必须是11位",
+    				   minlength:"手机号必须是11位"
+    			   },
+    			   birthday:{
+    				   required:"生日不能为空", // 不能为空
+    				   date:"日期格式正确"
+    			   } 
+    		   }
+    		   
+    	   })
+    	     
+	    	   // validator它没有验证姓名  
+	    	   // 自定义一个规则
+				jQuery.validator.addMethod("chekName", function(value, element) {
+					//  设置排除的符号
+					  var pattern = new RegExp("[`~!@#$^&*=|{}':;',\\[\\]<>《》/?~！@#￥……&*|{}【】‘；：”“'。，、？' ']");
+					// 
+					  if(pattern.test(value)){
+						              return false;
+						  // 判断输入的名字不能有空格
+						       }else if(value.indexOf(" ") != -1){
+						              return false;
+						       }else{
+						              return true;
+						       }
+						
+				},"不能有特殊符号");
+			   // 绑定验证手机号验证手机号
+			   jQuery.validator.addMethod("isphoneNum", function(value, element) {
+		            /* debugger */
+		            var length = value.length;
+		            var mobile = /^1[3|5|8]{1}[0-9]{9}$/;
+		            return this.optional(element) || (length == 11 && mobile.test(value));
+		        }, "请正确填写您的手机号码");
+
+
+                //当表单提交时，请求servlet
+				$("#registerForm").submit(function(){
+					
+					var s = $("#username").val();
+					var password = $("#password").val();
+					var telephone = $("#telephone").val();
+					if(s==null || s==""|| password==null||password==""||
+							telephone==""||telephone==null){
+						
+						return false;
+					}
+					$.ajax({
+						url:"regisUserServlet",
+						data:$("#registerForm").serialize(),  // 自动提交
+						type:"POST",
+						asunc:false,
+						success:function(data){
+							/* debugger; */
+							if(data.flag){
+								//注册成功
+								location.href="register_ok.html";
+							}else{
+								//注册失败
+								$("#errorMsg").html(data.errorMsg);
+							}
+						}
+					})
+					 //如果这个方法没有返回值，或者返回为true，则表单提交，如果返回为false，则表单不提交
+                        return false;
+				});
+			});
+
+		</script>
+
+
+    </head>
+	<body>
+	<!--引入头部-->
+	<div id="header"></div>
+        <!-- 头部 end -->
+    	<div class="rg_layout">
+    		<div class="rg_form clearfix">
+    			<div class="rg_form_left">
+    				<p>新用户注册</p>
+    				<p>USER REGISTER</p>
+    			</div>
+    			<div class="rg_form_center">
+                     <div id="errorMsg"></div>
+					<!--注册表单-->
+    				<form id="registerForm" action="user">
+						<!--提交处理请求的标识符-->
+						<input type="hidden" name="action" value="register">
+    					<table style="margin-top: 25px;">
+    						<tr>
+    							<td class="td_left">
+    								<label for="username">用户名</label>
+    							</td>
+    							<td class="td_right">
+    								<input type="text" id="username" required="true" name="username" >
+    							</td>
+    						</tr>
+    						<tr>
+    							<td class="td_left">
+    								<label for="password">密码</label>
+    							</td>
+    							<td class="td_right">
+    								<input type="text" id="password" required="true" name="password" placeholder="请输入密码">
+    							</td>
+    						</tr>
+    						<tr>
+    							<td class="td_left">
+    								<label for="email">Email</label>
+    							</td>
+    							<td class="td_right">
+    								<input type="text" id="email" name="email" placeholder="请输入Email">
+    							</td>
+    						</tr>
+    						<tr>
+    							<td class="td_left">
+    								<label for="name">姓名</label>
+    							</td>
+    							<td class="td_right">
+    								<input type="text" id="name" name="name" placeholder="请输入真实姓名">
+    							</td>
+    						</tr>
+    						<tr>
+    							<td class="td_left">
+    								<label for="telephone">手机号</label>
+    							</td>
+    							<td class="td_right">
+    								<input type="text" id="telephone" name="telephone" placeholder="请输入您的手机号">
+    							</td>
+    						</tr>
+    						<tr>
+    							<td class="td_left">
+    								<label for="sex">性别</label>
+    							</td>
+    							<td class="td_right gender">
+    								<input type="radio" id="sex" name="sex" value="男" checked> 男
+    								<input type="radio" name="sex" value="女"> 女
+    							</td>
+    						</tr>
+    						<tr>
+    							<td class="td_left">
+    								<label for="birthday">出生日期</label>
+    							</td>
+    							<td class="td_right">
+    								<input type="date" id="birthday" name="birthday" placeholder="年/月/日">
+    							</td>
+    						</tr>
+    						<tr>
+    							<td class="td_left">
+    							</td>
+    							<td class="td_right check">
+    								<input type="submit" class="submit" value="注册">
+									<span id="msg" style="color: red;"></span>
+    							</td>
+    						</tr>
+    					</table>
+    				</form>
+    			</div>
+    			<div class="rg_form_right">
+    				<p>
+    					已有账号？
+    					<a href="#">立即登录</a>
+    				</p>
+    			</div>
+    		</div>
+    	</div>
+        <!--引入尾部-->
+    	<div id="footer"></div>
+		<!--导入布局js，共享header和footer-->
+		<script type="text/javascript" src="js/include.js"></script>
+
+    </body>
+</html>
